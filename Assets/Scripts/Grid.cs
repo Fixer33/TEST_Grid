@@ -8,9 +8,9 @@ public class Grid : MonoBehaviour
 {
     public static Grid instance { get; private set; }
 
-    [SerializeField] private GameObject ScreenCharacterPrefab;
-    [SerializeField] private GameObject CharacterClonePrefab;
-    [SerializeField] private Transform CharacterCloneParent;
+    [SerializeField] [Tooltip("Префаб буквы в сетке")] private GameObject ScreenCharacterPrefab;
+    [SerializeField] [Tooltip("Префаб клона буквы для анимации")] private GameObject CharacterClonePrefab;
+    [SerializeField] [Tooltip("Объект, для которого будут дочерними клоны букв во время анимации")] private Transform CharacterCloneParent;
 
     public int ColCount { get; private set; } = 0;
     public int RowCount { get; private set; } = 0;
@@ -28,7 +28,8 @@ public class Grid : MonoBehaviour
         _grid = GetComponent<GridLayoutGroup>();
     }
 
-    public void GenerateField(int width, int height)
+    #region Генерация
+    public void GenerateGrid(int width, int height)
     {
         if (width <= 0 || height <= 0 || _isShuffling)
             return;
@@ -55,6 +56,9 @@ public class Grid : MonoBehaviour
         RowCount = 0;
         ColCount = 0;
     }
+    /// <summary>
+    /// Рассчитывает размер ячеек сетки, чтобы все буквы поместились в экран
+    /// </summary>
     private void ResizeGridElements()
     {
         RectTransform rectTransform = _grid.GetComponent<RectTransform>();
@@ -92,25 +96,32 @@ public class Grid : MonoBehaviour
         {
             for (int c = 0; c < ColCount; c++)
             {
-                GameObject newCharObject = Instantiate(ScreenCharacterPrefab, _grid.transform);
-                ScreenCharacter characterScript = newCharObject.GetComponent<ScreenCharacter>();
-                characterScript.SetData(characterMatrix[r, c]);
-                result[r, c] = characterScript;
+                result[r, c] = InstantiateCharacter(characterMatrix[r, c]);
             }
         }
 
         return result;
     }
+    private ScreenCharacter InstantiateCharacter(char character)
+    {
+        GameObject newCharObject = Instantiate(ScreenCharacterPrefab, _grid.transform);
+        ScreenCharacter characterScript = newCharObject.GetComponent<ScreenCharacter>();
+        characterScript.SetData(character);
+        return characterScript;
+    }
+    #endregion
 
+    #region Перемешивание
     public void ShuffleElements()
     {
         if (ColCount <= 0 || RowCount <= 0 || _isShuffling)
             return;
 
         _isShuffling = true;
+
         int[] newIndexes = GetNewLinearIndexes();
         CharacterClone[] clonesForAnimation = CreateAnimationClones();
-        ChangeCharacters(newIndexes);
+        ChangeCharactersToNew(newIndexes);
         HideAllOriginalCharacters();
         StartCloneMoving(clonesForAnimation, newIndexes);
         StartCoroutine(ShowOriginalCharactersAndDeleteClonesAfterMovingClones(clonesForAnimation));
@@ -140,19 +151,26 @@ public class Grid : MonoBehaviour
             for (int c = 0; c < ColCount; c++)
             {
                 Vector3 position = _characterMatrix[r, c].transform.position;
-                GameObject cloneObj = Instantiate(CharacterClonePrefab, position, Quaternion.identity, CharacterCloneParent);
-                CharacterClone cloneScript = cloneObj.GetComponent<CharacterClone>();
-                cloneScript.SetCharacter(_characterMatrix[r, c].Character);
-                RectTransform rectTransform = cloneObj.GetComponent<RectTransform>();
-                Vector2 size = _characterMatrix[r, c].GetComponent<RectTransform>().rect.size;
-                rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size.x);
-                rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, size.y);
-                result[ColCount * r + c] = cloneScript;
+                result[ColCount * r + c] = InstantiateClone(r, c, position);
             }
         }
         return result;
     }
-    private void ChangeCharacters(int[] newIndexes)
+    private CharacterClone InstantiateClone(int row, int col, Vector3 position)
+    {
+        GameObject cloneObj = Instantiate(CharacterClonePrefab, position, Quaternion.identity, CharacterCloneParent);
+        CharacterClone cloneScript = cloneObj.GetComponent<CharacterClone>();
+        cloneScript.SetCharacter(_characterMatrix[row, col].Character);
+
+        //Установить размер как у оригинальной буквы
+        RectTransform rectTransform = cloneObj.GetComponent<RectTransform>();
+        Vector2 size = _characterMatrix[row, col].GetComponent<RectTransform>().rect.size;
+        rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size.x);
+        rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, size.y);
+
+        return cloneScript;
+    }
+    private void ChangeCharactersToNew(int[] newIndexes)
     {
         char[] oldCharacters = new char[RowCount * ColCount];
         for (int r = 0; r < RowCount; r++)
@@ -208,5 +226,6 @@ public class Grid : MonoBehaviour
                 _characterMatrix[r, c].gameObject.SetActive(true);
             }
         }
-    }
+    } 
+    #endregion
 }

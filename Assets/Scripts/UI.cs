@@ -13,7 +13,7 @@ public class UI : MonoBehaviour
 
         if (int.TryParse(widthRaw, out int width) && int.TryParse(heightRaw, out int height))
         {
-            Grid.instance.GenerateField(width, height);
+            Grid.instance.GenerateGrid(width, height);
         }
     }
 

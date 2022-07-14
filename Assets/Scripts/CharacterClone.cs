@@ -5,11 +5,9 @@ using UnityEngine.UI;
 
 public class CharacterClone : MonoBehaviour
 {
-    public const float TIME_TO_REACH = 2f;
+    public const float TIME_TO_REACH = 2f; //Секунды
 
     [SerializeField] private Text CharacterText;
-
-    public bool IsDone { get; private set; } = false;
 
     private Vector3 _target;
 
@@ -28,9 +26,8 @@ public class CharacterClone : MonoBehaviour
     {
         while (transform.position != _target)
         {
-            transform.position = Vector3.Lerp(transform.position, _target, Time.deltaTime * (TIME_TO_REACH + 1f));
+            transform.position = Vector3.Lerp(transform.position, _target, Time.deltaTime * (TIME_TO_REACH + 1f)); // +1 для плавности анимации
             yield return null;
         }
-        IsDone = true;
     }
 }

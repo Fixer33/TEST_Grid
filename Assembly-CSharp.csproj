@@ -59,6 +59,7 @@
     <Compile Include="Assets\Scripts\UI.cs" />
     <Compile Include="Assets\Scripts\Grid.cs" />
     <Compile Include="Assets\Scripts\ScreenCharacter.cs" />
+    <Compile Include="Assets\Scripts\CharacterClone.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

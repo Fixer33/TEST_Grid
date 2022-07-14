@@ -16,4 +16,9 @@ public class UI : MonoBehaviour
             Grid.instance.GenerateField(width, height);
         }
     }
+
+    public void ShuffleButton_Press()
+    {
+        Grid.instance.ShuffleElements();
+    }
 }
